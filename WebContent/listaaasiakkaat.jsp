@@ -14,9 +14,12 @@
 <table id="listaus">
 <thead>
 <tr>
+	<th colspan="4" class="oikealle"><input type= "submit" value= "Lisää uusi asiakas" id="uusiAsiakas"></th>
+</tr>
+<tr>
 <th class="oikealle"> Haku:</th> 
 <th colspan="2"><input type="text" id="hakusana"></th>
-	<th><input type="button" value="Hae" id="hakunappi"></th>
+	<th><input type="submit" value="Hae" id="hakunappi"></th>
 		</tr>
 		<tr>
 		<th>Etunimi</th>
@@ -31,7 +34,11 @@
 <script>
 $(document).ready(function(){
 	
-	haeAsiakkaat();
+	$("#uusiAsiakas").click(function(){
+		document.location="lisaaasiakas.jsp";
+	});
+	
+	
 	$("#hakunappi").click(function(){		
 		haeAsiakkaat();
 	});
@@ -41,24 +48,37 @@ $(document).ready(function(){
 		  }
 	});
 	$("#hakusana").focus();
+	haeAsiakkaat();
 });	
 
 function haeAsiakkaat(){
 	$("#listaus tbody").empty();
-	$.ajax({url:"asiakkaat/"+$("#hakusana").val(), type:"GET", dataType:"json", success:function(result){		
+	$.getJSON({url:"asiakkaat/"+$("#hakusana").val(), type:"GET", dataType:"json", success:function(result){		
 		$.each(result.asiakkaat, function(i, field){  
         	var htmlStr;
-        	htmlStr+="<tr>";
+        	htmlStr+="<tr id='rivi_"+field.etunimi+"'>";
         	htmlStr+="<td>"+field.etunimi+"</td>";
         	htmlStr+="<td>"+field.sukunimi+"</td>";
         	htmlStr+="<td>"+field.puhelin+"</td>";
-        	htmlStr+="<td>"+field.sposti+"</td>";  
+        	htmlStr+="<td>"+field.sposti+"</td>"; 
+        	htmlStr+="<td><span class='poista' onclick=poista('"+field.etunimi+"')>Poista</span></td>";
         	htmlStr+="</tr>";
         	$("#listaus tbody").append(htmlStr);
         });	
     }});
 }
-
+function poista(etunimi){
+	if(confirm("Poista asiakas " + etunimi +"?")){
+		$.ajax({url:"asiakkaat/"+etunimi, type:"DELETE", dataType:"json", success:function(result) { 
+	        if(result.response==0){
+	        	$("#ilmo").html("Asiakkaan poisto ei onnistunut.");
+	        }else if(result.response==1){
+	        $("#ilmo").html("Asiakkaan " + etunimi +" poisto onnistui.");
+				haeAsiakkaat();        	
+			}
+	    }});
+	}
+}
 
 </script>
 </body>
